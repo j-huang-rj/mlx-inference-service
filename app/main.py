@@ -51,7 +51,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     info_text.append("⚡ Loading Strategy    ", style="bold cyan")
     info_text.append("Lazy\n", style="bright_white")
 
-    info_text.append("⏱️  Idle Timeout        ", style="bold cyan")
+    info_text.append("⏱️ Idle Timeout        ", style="bold cyan")
     info_text.append(f"{settings.model_idle_timeout_seconds}s", style="bright_white")
 
     panel = Panel(
