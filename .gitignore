@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv
+venv/
+env/
+
+# IDE settings
+.idea/
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Environment variables
+.env
+
+# Logs
+*.log
+server.log
+
+# Temporary files
+tmp/
