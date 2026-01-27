@@ -12,10 +12,10 @@ A high-performance inference service for **Qwen3 Embedding 0.6B** and **Jina Rer
 
 ## 📦 Models
 
-| Type          | Model                         | Parameters |
-| ------------- | ----------------------------- | ---------- |
-| **Embedding** | `Qwen/Qwen3-Embedding-0.6B`   | 0.6B       |
-| **Reranker**  | `jinaai/jina-reranker-v3-mlx` | 0.6B       |
+| Type          | Model                         | Alias                  | Parameters |
+| ------------- | ----------------------------- | ---------------------- | ---------- |
+| **Embedding** | `Qwen/Qwen3-Embedding-0.6B`   | `Qwen3-Embedding-0.6B` | 0.6B       |
+| **Reranker**  | `jinaai/jina-reranker-v3-mlx` | `Jina-Reranker-V3`     | 0.6B       |
 
 ## 🛠 Prerequisites
 
@@ -96,7 +96,8 @@ curl -X POST http://localhost:11435/v1/rerank \
       "The weather is sunny today",
       "Deep learning uses neural networks"
     ],
-    "top_n": 2
+    "top_n": 2,
+    "model": "Jina-Reranker-V3"
   }'
 ```
 

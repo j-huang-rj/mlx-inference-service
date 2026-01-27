@@ -35,6 +35,14 @@ async def create_embeddings(request: EmbeddingRequest) -> EmbeddingResponse:
     # Normalize input to list
     texts = [request.input] if isinstance(request.input, str) else request.input
 
+    # Validate model name
+    valid_models = {settings.embedding_model, "Qwen3-Embedding-0.6B"}
+    if request.model not in valid_models:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid model '{request.model}'. Expected one of: {valid_models}",
+        )
+
     if not texts:
         raise HTTPException(status_code=400, detail="Input cannot be empty")
 

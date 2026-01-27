@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 class EmbeddingRequest(BaseModel):
     """OpenAI-compatible embedding request."""
 
-    model: str = Field(default="qwen3-embedding-0.6b", description="Model identifier")
+    model: str = Field(default="Qwen3-Embedding-0.6B", description="Model identifier")
     input: str | list[str] = Field(..., description="Text(s) to embed")
     encoding_format: Literal["float", "base64"] = Field(
         default="float", description="Encoding format for embeddings"
@@ -58,7 +58,7 @@ class EmbeddingResponse(BaseModel):
 class RerankRequest(BaseModel):
     """Rerank request following Cohere/Jina convention."""
 
-    model: str = Field(default="jina-reranker-v3", description="Model identifier")
+    model: str = Field(default="Jina-Reranker-V3", description="Model identifier")
     query: str = Field(..., description="Search query")
     documents: list[str] = Field(..., min_length=1, description="Documents to rerank")
     top_n: int | None = Field(

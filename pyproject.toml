@@ -1,6 +1,6 @@
 [project]
 name = "mlx-inference-service"
-version = "0.1.0"
+version = "0.2.0"
 description = "A high-performance inference service for **Qwen3 Embedding 0.6B** and **Jina Reranker V3**, optimized for Apple Silicon using the MLX framework"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"

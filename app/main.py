@@ -79,10 +79,12 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
 
+    from app import __version__
+
     app = FastAPI(
         title="MLX Inference Service",
         description="MLX inference service for embeddings and reranking",
-        version="0.1.0",
+        version=__version__,
         lifespan=lifespan,
         default_response_class=ORJSONResponse,
     )

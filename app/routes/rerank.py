@@ -27,6 +27,17 @@ async def rerank_documents(request: RerankRequest) -> RerankResponse:
 
     service = get_reranker_service()
 
+    # Validate model name
+    valid_models = {
+        settings.reranker_model,
+        "Jina-Reranker-V3",
+    }
+    if request.model not in valid_models:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid model '{request.model}'. Expected one of: {valid_models}",
+        )
+
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 

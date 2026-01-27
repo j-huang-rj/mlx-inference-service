@@ -99,7 +99,7 @@ def test_api_embedding_only(mocker, test_app, mock_services):
     assert resp.status_code == 200
     data = resp.json()
     assert len(data["models"]) == 1
-    assert data["models"][0]["name"] == "qwen3-embedding-0.6b"
+    assert data["models"][0]["name"] == "Qwen3-Embedding-0.6B"
 
     # Models list should only show embedding
     resp = client.get("/v1/models")
@@ -135,7 +135,7 @@ def test_api_reranker_only(mocker, test_app, mock_services):
     assert resp.status_code == 200
     data = resp.json()
     assert len(data["models"]) == 1
-    assert data["models"][0]["name"] == "jina-reranker-v3"
+    assert data["models"][0]["name"] == "Jina-Reranker-V3"
 
     # Models list should only show reranker
     resp = client.get("/v1/models")

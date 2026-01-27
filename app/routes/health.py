@@ -21,7 +21,7 @@ async def health_check() -> HealthResponse:
         embedding_service = get_embedding_service()
         models.append(
             ModelStatus(
-                name="qwen3-embedding-0.6b",
+                name="Qwen3-Embedding-0.6B",
                 loaded=embedding_service.is_loaded,
                 error=embedding_service.load_error,
             )
@@ -31,7 +31,7 @@ async def health_check() -> HealthResponse:
         reranker_service = get_reranker_service()
         models.append(
             ModelStatus(
-                name="jina-reranker-v3",
+                name="Jina-Reranker-V3",
                 loaded=reranker_service.is_loaded,
                 error=reranker_service.load_error,
             )
@@ -54,9 +54,11 @@ async def health_check() -> HealthResponse:
 async def root():
     """Root endpoint with service info."""
 
+    from app import __version__
+
     return {
         "service": "MLX Inference Service",
-        "version": "0.1.0",
+        "version": __version__,
         "endpoints": {
             "embeddings": "/v1/embeddings",
             "rerank": "/v1/rerank",
