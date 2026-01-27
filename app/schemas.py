@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 class EmbeddingRequest(BaseModel):
     """OpenAI-compatible embedding request."""
 
-    model: str = Field(default="qwen3-embedding-8b", description="Model identifier")
+    model: str = Field(default="qwen3-embedding-0.6b", description="Model identifier")
     input: str | list[str] = Field(..., description="Text(s) to embed")
     encoding_format: Literal["float", "base64"] = Field(
         default="float", description="Encoding format for embeddings"
@@ -19,12 +19,12 @@ class EmbeddingRequest(BaseModel):
     dimensions: int | None = Field(
         default=None,
         ge=32,
-        le=4096,
-        description="Output dimensions (32-4096 for 8B model)",
+        le=1024,
+        description="Output dimensions",
     )
     instruction: str | None = Field(
         default=None,
-        description="Optional instruction prefix for instruction-aware models",
+        description="Optional instruction prefix",
     )
 
 
@@ -73,8 +73,8 @@ class RerankResult(BaseModel):
     """Single rerank result."""
 
     index: int = Field(..., description="Original document index")
-    relevance_score: float = Field(..., description="Relevance score (higher=better)")
-    document: str | None = Field(default=None, description="Document text if requested")
+    relevance_score: float = Field(..., description="Relevance score")
+    document: str | None = Field(default=None, description="Document text")
 
 
 class RerankResponse(BaseModel):
@@ -111,7 +111,9 @@ class ModelCard(BaseModel):
     id: str = Field(..., description="Model identifier")
     object: Literal["model"] = "model"
     created: int = Field(default=0, description="Creation timestamp")
-    owned_by: str = Field(default="system", description="Owner organization")
+    owned_by: str = Field(
+        default="mlx-inference-service", description="Owner organization"
+    )
 
 
 class ModelList(BaseModel):

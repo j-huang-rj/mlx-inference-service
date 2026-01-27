@@ -18,7 +18,7 @@ async def health_check() -> HealthResponse:
 
     models = [
         ModelStatus(
-            name="qwen3-embedding-8b",
+            name="qwen3-embedding-0.6b",
             loaded=embedding_service.is_loaded,
             error=embedding_service.load_error,
         ),

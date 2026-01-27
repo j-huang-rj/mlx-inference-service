@@ -43,7 +43,7 @@ def mock_embedding_model(mocker):
         seq_length = input_ids.shape[1]
 
         # Return random hidden states
-        hidden_states = np.random.randn(batch_size, seq_length, 4096).astype(np.float32)
+        hidden_states = np.random.randn(batch_size, seq_length, 1024).astype(np.float32)
 
         # Create a simple object with last_hidden_state attribute
         output = type("ModelOutput", (), {})()
@@ -53,24 +53,41 @@ def mock_embedding_model(mocker):
 
     mock_model.side_effect = mock_forward
 
-    # Create a mock tokenizer
+    # Create a mock tokenizer with proper structure
     mock_tokenizer = MagicMock()
+
+    # Create inner tokenizer object with padding_side attribute
+    inner_tokenizer = MagicMock()
+    inner_tokenizer.padding_side = "left"
 
     def mock_tokenize(texts, **_):
         batch_size = len(texts)
 
-        # Fixed for simplicity
+        # Variable sequence lengths to simulate real tokenization
         seq_length = 128
 
-        # Return mock tokenizer output with explicit int64 dtype
+        # Simulate left-padded sequences
+        attention_masks = []
+        for _ in range(batch_size):
+            padding_len = np.random.randint(0, 21)
+            mask = np.concatenate(
+                [
+                    np.zeros(padding_len, dtype=np.int64),
+                    np.ones(seq_length - padding_len, dtype=np.int64),
+                ]
+            )
+            attention_masks.append(mask)
+
         return {
             "input_ids": np.random.randint(0, 1000, (batch_size, seq_length)).astype(
                 np.int64
             ),
-            "attention_mask": np.ones((batch_size, seq_length), dtype=np.int64),
+            "attention_mask": np.array(attention_masks, dtype=np.int64),
         }
 
-    mock_tokenizer._tokenizer = mock_tokenize
+    # Make inner_tokenizer callable
+    inner_tokenizer.side_effect = mock_tokenize
+    mock_tokenizer._tokenizer = inner_tokenizer
 
     # Patch the load function to return (model, tokenizer)
     mocker.patch(

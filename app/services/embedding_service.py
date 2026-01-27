@@ -1,5 +1,6 @@
 """Embedding service using mlx-embeddings."""
 
+import gc
 import logging
 import threading
 import time
@@ -77,6 +78,9 @@ class EmbeddingService:
                 # Load the model using mlx-embeddings
                 self._model, self._tokenizer = load(settings.embedding_model)
 
+                # Qwen3 Embedding requires left padding for correct last-token pooling
+                self._tokenizer._tokenizer.padding_side = "left"
+
                 logger.info("Embedding model loaded successfully")
                 self._load_error = None
 
@@ -88,14 +92,25 @@ class EmbeddingService:
     def _last_token_pool(
         self, hidden_states: mx.array, attention_mask: mx.array
     ) -> mx.array:
-        """Extract embeddings using last token pooling."""
+        """Extract embeddings using last token pooling.
 
-        # For left padding, find the last non-padded token
-        sequence_lengths = mx.sum(attention_mask, axis=1) - 1
-        batch_size = hidden_states.shape[0]
-        batch_indices = mx.arange(batch_size)
+        Matches official Qwen3 implementation:
+        - With left padding: last token is always at position -1
+        - With right padding: last token is at (sequence_length - 1)
+        """
 
-        return hidden_states[batch_indices, sequence_lengths.astype(mx.int32), :]
+        # Check if left padding: all sequences have attention=1 at last position
+        left_padding = mx.sum(attention_mask[:, -1]) == attention_mask.shape[0]
+
+        if left_padding:
+            # With left padding, last real token is always at the last position
+            return hidden_states[:, -1, :]
+        else:
+            # With right padding, find the last non-padded token per sequence
+            sequence_lengths = mx.sum(attention_mask, axis=1) - 1
+            batch_size = hidden_states.shape[0]
+            batch_indices = mx.arange(batch_size)
+            return hidden_states[batch_indices, sequence_lengths.astype(mx.int32), :]
 
     def _normalize(self, embeddings: mx.array) -> mx.array:
         """L2 normalize embeddings."""
@@ -115,8 +130,8 @@ class EmbeddingService:
 
         Args:
             texts: List of texts to embed
-            dimensions: Optional dimension to truncate to (will normalize after truncation)
-            instruction: Optional instruction prefix (for instruction-aware models)
+            dimensions: Optional dimension to truncate to.
+            instruction: Optional instruction prefix for queries.
 
         Returns:
             Tuple of (embeddings, token_count)
@@ -130,7 +145,7 @@ class EmbeddingService:
 
         # Apply instruction prefix if provided
         if instruction:
-            texts = [f"Instruct: {instruction}\nQuery: {text}" for text in texts]
+            texts = [f"Instruct: {instruction}\nQuery:{text}" for text in texts]
 
         all_embeddings: list[list[float]] = []
         total_tokens = 0
@@ -140,9 +155,13 @@ class EmbeddingService:
         for i in range(0, len(texts), batch_size):
             batch_texts = texts[i : i + batch_size]
 
-            # Tokenize
+            # Tokenize with max_length
             tokens = self._tokenizer._tokenizer(
-                batch_texts, return_tensors="np", padding=True, truncation=True
+                batch_texts,
+                return_tensors="np",
+                padding=True,
+                truncation=True,
+                max_length=8192,
             )
             input_ids = mx.array(tokens["input_ids"])
             attention_mask = mx.array(tokens["attention_mask"])
@@ -185,7 +204,14 @@ class EmbeddingService:
                 self._model = None
                 self._tokenizer = None
                 self._last_used_time = None
-                logger.info("Embedding model unloaded")
+
+                # Force garbage collection to release memory
+                gc.collect()
+
+                # Clear MLX Metal GPU memory cache
+                mx.clear_cache()
+
+                logger.info("Embedding model unloaded and memory cleared")
 
 
 def get_embedding_service() -> EmbeddingService:

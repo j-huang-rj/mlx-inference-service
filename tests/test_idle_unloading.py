@@ -11,7 +11,7 @@ def test_idle_unloading_integration(mocker, mock_embedding_model):
     settings_mock = Mock()
     settings_mock.model_idle_timeout_seconds = 2
     settings_mock.model_unload_check_interval = 0.5
-    settings_mock.embedding_model = "mlx-community/Qwen3-Embedding-8B-4bit-DWQ"
+    settings_mock.embedding_model = "Qwen/Qwen3-Embedding-0.6B"
     settings_mock.embedding_batch_size = 16
 
     mocker.patch("app.services.model_manager.get_settings", return_value=settings_mock)
@@ -61,7 +61,7 @@ def test_no_unload_during_active_use(mocker, mock_embedding_model):
     settings_mock = Mock()
     settings_mock.model_idle_timeout_seconds = 1
     settings_mock.model_unload_check_interval = 0.3
-    settings_mock.embedding_model = "mlx-community/Qwen3-Embedding-8B-4bit-DWQ"
+    settings_mock.embedding_model = "Qwen/Qwen3-Embedding-0.6B"
     settings_mock.embedding_batch_size = 16
     mocker.patch("app.services.model_manager.get_settings", return_value=settings_mock)
     mocker.patch(
@@ -99,7 +99,7 @@ def test_multiple_services_idle_tracking(mocker, mock_embedding_model, mock_rera
     settings_mock = Mock()
     settings_mock.model_idle_timeout_seconds = 1
     settings_mock.model_unload_check_interval = 0.3
-    settings_mock.embedding_model = "mlx-community/Qwen3-Embedding-8B-4bit-DWQ"
+    settings_mock.embedding_model = "Qwen/Qwen3-Embedding-0.6B"
     settings_mock.embedding_batch_size = 16
     settings_mock.reranker_model = "jinaai/jina-reranker-v3-mlx"
     settings_mock.reranker_batch_size = 16

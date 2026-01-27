@@ -1,97 +1,89 @@
 # MLX Inference Service
 
-A high-performance, local inference service for embeddings and reranking, built on Apple's MLX framework. Designed for Apple Silicon.
+A high-performance inference service for **Qwen3 Embedding 0.6B** and **Jina Reranker V3**, optimized for Apple Silicon using the MLX framework.
 
-## Features
+## ✨ Features
 
-- **High Performance**: Optimized for Apple Silicon using MLX.
-- **Lazy Loading**: Models are loaded only when needed and unloaded after idle time to save memory.
-- **Dual Functionality**: Supports both text embeddings and reranking.
-- **Configurable**: Adjustable batch sizes, timeouts, and model selection via environment variables.
+- 🚀 **Apple Silicon Optimized** — Built on MLX for maximum Metal GPU performance
+- 🧠 **Qwen3 Embedding 0.6B** — Embeddings with Matryoshka support
+- 🎯 **Jina Reranker V3** — Listwise document reranker for multilingual retrieval
+- 💤 **Smart Memory Management** — Lazy loading with automatic unload after idle timeout
+- 🔌 **OpenAI-Compatible API** — Standardized interface for requests
 
-## Models
+## 📦 Models
 
-- **Embedding**: `mlx-community/Qwen3-Embedding-8B-4bit-DWQ`
-- **Reranker**: `jinaai/jina-reranker-v3-mlx`
+| Type          | Model                         | Parameters |
+| ------------- | ----------------------------- | ---------- |
+| **Embedding** | `Qwen/Qwen3-Embedding-0.6B`   | 0.6B       |
+| **Reranker**  | `jinaai/jina-reranker-v3-mlx` | 0.6B       |
 
-## Prerequisites
+## 🛠 Prerequisites
 
-- macOS with Apple Silicon
+- macOS with Apple Silicon (M1/M2/M3/M4)
 - Python 3.11+
-- [uv](https://github.com/astral-sh/uv)
+- [uv](https://github.com/astral-sh/uv) package manager
 
-## Installation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone <your-repo-url>
-   cd inference
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   uv sync
-   ```
-
-3. **Configure environment:**
-
-   Copy the example configuration:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Modify `.env` if needed to adjust models or batch sizes.
-
-## Usage
-
-### Start the Server
+## 🚀 Quick Start
 
 ```bash
+# Clone and install
+git clone https://github.com/j-huang-rj/mlx-inference-service.git
+cd mlx-inference-service
+uv sync
+
+# Configure
+cp .env.example .env
+
+# Run
 uv run serve
 ```
 
-The server will start at `http://localhost:11435`.
+Service starts at `http://localhost:11435`
 
-### API Documentation
+## ⚙️ CLI Options
 
-Interactive API documentation is available at `http://localhost:11435/docs`.
-
-### API Endpoints
-
-#### 1. List Models
-
-**Endpoint**: `GET /v1/models`
-
-**Compatible**: OpenAI API
+Override `.env` settings via command-line arguments:
 
 ```bash
-curl http://localhost:11435/v1/models
+# Custom port
+uv run serve --port 11434
+
+# Multiple overrides
+uv run serve -p 11434 -H 0.0.0.0 --embedding_batch_size 512
+
+# Dev mode (auto-reload)
+uv run serve --mode dev
+
+# View all options
+uv run serve --help
 ```
 
-#### 2. Embeddings
+| Argument                        | Short | Description                                |
+| ------------------------------- | ----- | ------------------------------------------ |
+| `--host`                        | `-H`  | Host to bind the server                    |
+| `--port`                        | `-p`  | Port to bind the server                    |
+| `--mode`                        | `-m`  | `dev` or `prod` (dev enables auto-reload)  |
+| `--lazy_load`                   |       | Enable lazy model loading (`true`/`false`) |
+| `--model_idle_timeout_seconds`  |       | Seconds before unloading idle models       |
+| `--model_unload_check_interval` |       | Interval to check for idle models          |
+| `--embedding_batch_size`        |       | Batch size for embedding generation        |
+| `--embedding_matryoshka_dim`    |       | Matryoshka dimension for embeddings        |
+| `--reranker_batch_size`         |       | Batch size for reranking                   |
 
-**Endpoint**: `POST /v1/embeddings`
+## 📡 API Endpoints
 
-**Compatible**: OpenAI API
+### Embeddings (OpenAI-compatible)
 
 ```bash
 curl -X POST http://localhost:11435/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{
     "input": "What is machine learning?",
-    "model": "qwen3-embedding-8b",
-    "instruction": "Represent this query for retrieval"
+    "model": "Qwen/Qwen3-Embedding-0.6B"
   }'
 ```
 
-#### 3. Reranking
-
-**Endpoint**: `POST /v1/rerank`
-
-**Compatible**: Jina/Cohere style
+### Reranking (Jina/Cohere-style)
 
 ```bash
 curl -X POST http://localhost:11435/v1/rerank \
@@ -107,34 +99,28 @@ curl -X POST http://localhost:11435/v1/rerank \
   }'
 ```
 
-#### 4. Health Check
+### Other Endpoints
 
-**Endpoint**: `GET /health`
+| Endpoint     | Method | Description                    |
+| ------------ | ------ | ------------------------------ |
+| `/v1/models` | GET    | List available models          |
+| `/health`    | GET    | Health check with model status |
+| `/docs`      | GET    | Interactive API documentation  |
 
-```bash
-curl http://localhost:11435/health
-```
-
-## Development
-
-### Running Tests
+## 🧪 Development
 
 ```bash
+# Run tests
 uv run pytest
-```
 
-### Linting
-
-```bash
+# Linting
 uv run ruff check .
 ```
 
-## License
+## 📄 License
 
-This project is licensed under the terms of the [MIT License](LICENSE).
+[MIT License](LICENSE)
 
 ---
 
-## Maintainer
-
-Rui-Jie Huang ([@j-huang-rj](https://github.com/j-huang-rj))
+**Maintainer**: Rui-Jie Huang ([@j-huang-rj](https://github.com/j-huang-rj))

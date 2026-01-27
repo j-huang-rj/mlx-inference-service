@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import ORJSONResponse
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
         description="MLX inference service for embeddings and reranking",
         version="0.1.0",
         lifespan=lifespan,
+        default_response_class=ORJSONResponse,
     )
 
     # CORS middleware for local development
@@ -92,9 +93,9 @@ def create_app() -> FastAPI:
     )
 
     @app.exception_handler(Exception)
-    async def global_exception_handler(_: Request, exc: Exception) -> JSONResponse:
+    async def global_exception_handler(_: Request, exc: Exception) -> ORJSONResponse:
         logger.exception("Unhandled exception")
-        return JSONResponse(
+        return ORJSONResponse(
             status_code=500,
             content={"detail": f"Internal Server Error: {exc}"},
         )
@@ -128,25 +129,104 @@ def run() -> None:
 
 def serve() -> None:
     """
-    Run the server.
+    Run the server with optional CLI argument overrides.
+
+    CLI arguments override .env values. Use --help for available options.
     """
 
+    import argparse
     import os
     import subprocess
     from pathlib import Path
 
-    # Load .env file if it exists
-    env_file = Path(".env")
+    from app.config import apply_cli_overrides, clear_settings_cache
 
+    # Load .env file first
+    env_file = Path(".env")
     if env_file.exists():
         from dotenv import load_dotenv
 
         load_dotenv(env_file)
 
+    # Parse CLI arguments
+    parser = argparse.ArgumentParser(
+        description="MLX Inference Service - Embeddings & Reranking",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # Server settings
+    parser.add_argument(
+        "--host",
+        "-H",
+        type=str,
+        help="Host to bind the server to",
+    )
+    parser.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        help="Port to bind the server to",
+    )
+    parser.add_argument(
+        "--mode",
+        "-m",
+        type=str,
+        choices=["dev", "prod"],
+        help="Run mode (dev enables auto-reload)",
+    )
+
+    # Resource management
+    parser.add_argument(
+        "--lazy_load",
+        type=lambda x: x.lower() in ("true", "1", "yes"),
+        metavar="BOOL",
+        help="Enable lazy loading of models",
+    )
+    parser.add_argument(
+        "--model_idle_timeout_seconds",
+        type=int,
+        metavar="SECONDS",
+        help="Seconds before unloading idle models",
+    )
+    parser.add_argument(
+        "--model_unload_check_interval",
+        type=int,
+        metavar="SECONDS",
+        help="Interval to check for idle models",
+    )
+
+    # Embedding settings
+    parser.add_argument(
+        "--embedding_batch_size",
+        type=int,
+        help="Batch size for embedding generation",
+    )
+    parser.add_argument(
+        "--embedding_matryoshka_dim",
+        type=int,
+        help="Matryoshka dimension for embeddings",
+    )
+
+    # Reranker settings
+    parser.add_argument(
+        "--reranker_batch_size",
+        type=int,
+        help="Batch size for reranking",
+    )
+
+    args = parser.parse_args()
+
+    # Apply CLI overrides to environment variables
+    cli_args = {k: v for k, v in vars(args).items() if v is not None}
+    if cli_args:
+        apply_cli_overrides(cli_args)
+        clear_settings_cache()
+
+    # Get settings with CLI overrides applied
     settings = get_settings()
 
-    mode = os.getenv("INFERENCE_MODE", "prod")
-
+    # Determine run mode
+    mode = args.mode or os.getenv("INFERENCE_MODE", "prod")
     fastapi_cmd = "dev" if mode == "dev" else "run"
 
     cmd = [

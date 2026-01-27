@@ -1,12 +1,13 @@
 [project]
 name = "mlx-inference-service"
 version = "0.1.0"
-description = "MLX inference service for embeddings and reranking"
+description = "A high-performance inference service for **Qwen3 Embedding 0.6B** and **Jina Reranker V3**, optimized for Apple Silicon using the MLX framework"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "fastapi[standard]>=0.128.0,<1.0.0",
     "uvicorn[standard]>=0.40.0,<1.0.0",
+    "orjson>=3.11.5,<4.0.0",
     "rich>=14.2.0,<15.0.0",
     "huggingface-hub>=0.36.0,<1.0.0",
     "pydantic>=2.12.5,<3.0.0",

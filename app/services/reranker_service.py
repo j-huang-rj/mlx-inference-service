@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import gc
 import logging
 import sys
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
+import mlx.core as mx
 from huggingface_hub import snapshot_download
 
 from app.config import get_settings
@@ -206,7 +208,13 @@ class RerankerService:
             self._model_path = None
             self._last_used_time = None
 
-            logger.info("Reranker model unloaded")
+            # Force garbage collection to release memory
+            gc.collect()
+
+            # Clear MLX Metal GPU memory cache
+            mx.clear_cache()
+
+            logger.info("Reranker model unloaded and memory cleared")
 
 
 def get_reranker_service() -> RerankerService:

@@ -34,7 +34,7 @@ def test_list_models(test_client):
     assert data["object"] == "list"
     assert len(data["data"]) == 2
 
-    assert "Qwen3-Embedding-8B" in data["data"][0]["id"]
+    assert "Qwen3-Embedding" in data["data"][0]["id"]
     assert "jina-reranker-v3" in data["data"][1]["id"]
 
 
@@ -45,7 +45,7 @@ def test_embeddings_single_text(test_client):
         "/v1/embeddings",
         json={
             "input": "Hello world",
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
         },
     )
 
@@ -53,7 +53,7 @@ def test_embeddings_single_text(test_client):
     data = response.json()
 
     assert data["object"] == "list"
-    assert data["model"] == "qwen3-embedding-8b"
+    assert data["model"] == "qwen3-embedding-0.6b"
     assert len(data["data"]) == 1
     assert len(data["data"][0]["embedding"]) > 0
     assert "usage" in data
@@ -67,7 +67,7 @@ def test_embeddings_multiple_texts(test_client):
         "/v1/embeddings",
         json={
             "input": ["Text 1", "Text 2", "Text 3"],
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
         },
     )
 
@@ -86,7 +86,7 @@ def test_embeddings_with_dimensions(test_client):
         "/v1/embeddings",
         json={
             "input": "Test",
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
             "dimensions": 512,
         },
     )
@@ -104,7 +104,7 @@ def test_embeddings_with_instruction(test_client):
         "/v1/embeddings",
         json={
             "input": "How to learn Python?",
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
             "instruction": "Represent this query for retrieval",
         },
     )
@@ -123,7 +123,7 @@ def test_embeddings_empty_input_error(test_client):
         "/v1/embeddings",
         json={
             "input": [],
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
         },
     )
 
@@ -138,7 +138,7 @@ def test_embeddings_too_many_texts_error(test_client):
         "/v1/embeddings",
         json={
             "input": ["text"] * 101,  # More than 100
-            "model": "qwen3-embedding-8b",
+            "model": "qwen3-embedding-0.6b",
         },
     )
 
