@@ -98,7 +98,7 @@ class ModelStatus(BaseModel):
 class HealthResponse(BaseModel):
     """Health check response."""
 
-    status: Literal["healthy", "standby", "unhealthy"]
+    status: Literal["healthy", "standby", "unhealthy", "not_configured"]
     models: list[ModelStatus]
 
 

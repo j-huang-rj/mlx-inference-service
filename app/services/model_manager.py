@@ -47,31 +47,33 @@ class ModelManager:
 
         while not self._stop_event.is_set():
             try:
-                # Check embedding service
-                embedding_service = get_embedding_service()
-                if embedding_service.is_loaded:
-                    idle_seconds = embedding_service.get_idle_seconds()
-                    if (
-                        idle_seconds is not None
-                        and idle_seconds >= settings.model_idle_timeout_seconds
-                    ):
-                        logger.info(
-                            f"Embedding model idle for {idle_seconds:.0f}s, unloading..."
-                        )
-                        embedding_service.unload()
+                # Check embedding service if enabled
+                if settings.embedding_enabled:
+                    embedding_service = get_embedding_service()
+                    if embedding_service.is_loaded:
+                        idle_seconds = embedding_service.get_idle_seconds()
+                        if (
+                            idle_seconds is not None
+                            and idle_seconds >= settings.model_idle_timeout_seconds
+                        ):
+                            logger.info(
+                                f"Embedding model idle for {idle_seconds:.0f}s, unloading..."
+                            )
+                            embedding_service.unload()
 
-                # Check reranker service
-                reranker_service = get_reranker_service()
-                if reranker_service.is_loaded:
-                    idle_seconds = reranker_service.get_idle_seconds()
-                    if (
-                        idle_seconds is not None
-                        and idle_seconds >= settings.model_idle_timeout_seconds
-                    ):
-                        logger.info(
-                            f"Reranker model idle for {idle_seconds:.0f}s, unloading..."
-                        )
-                        reranker_service.unload()
+                # Check reranker service if enabled
+                if settings.reranker_enabled:
+                    reranker_service = get_reranker_service()
+                    if reranker_service.is_loaded:
+                        idle_seconds = reranker_service.get_idle_seconds()
+                        if (
+                            idle_seconds is not None
+                            and idle_seconds >= settings.model_idle_timeout_seconds
+                        ):
+                            logger.info(
+                                f"Reranker model idle for {idle_seconds:.0f}s, unloading..."
+                            )
+                            reranker_service.unload()
 
             except Exception as e:
                 logger.error(f"Error in model manager loop: {e}", exc_info=True)

@@ -63,6 +63,7 @@ uv run serve --help
 | `--host`                        | `-H`  | Host to bind the server                    |
 | `--port`                        | `-p`  | Port to bind the server                    |
 | `--mode`                        | `-m`  | `dev` or `prod` (dev enables auto-reload)  |
+| `--enabled_models`              |       | `all`, `embedding`, or `reranker`          |
 | `--lazy_load`                   |       | Enable lazy model loading (`true`/`false`) |
 | `--model_idle_timeout_seconds`  |       | Seconds before unloading idle models       |
 | `--model_unload_check_interval` |       | Interval to check for idle models          |

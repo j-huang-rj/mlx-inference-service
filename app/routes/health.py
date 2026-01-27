@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from app.config import get_settings
 from app.schemas import HealthResponse, ModelStatus
 from app.services.embedding_service import get_embedding_service
 from app.services.reranker_service import get_reranker_service
@@ -13,29 +14,35 @@ router = APIRouter(tags=["health"])
 async def health_check() -> HealthResponse:
     """Check the health status of the service and loaded models."""
 
-    embedding_service = get_embedding_service()
-    reranker_service = get_reranker_service()
+    settings = get_settings()
+    models = []
 
-    models = [
-        ModelStatus(
-            name="qwen3-embedding-0.6b",
-            loaded=embedding_service.is_loaded,
-            error=embedding_service.load_error,
-        ),
-        ModelStatus(
-            name="jina-reranker-v3",
-            loaded=reranker_service.is_loaded,
-            error=reranker_service.load_error,
-        ),
-    ]
+    if settings.embedding_enabled:
+        embedding_service = get_embedding_service()
+        models.append(
+            ModelStatus(
+                name="qwen3-embedding-0.6b",
+                loaded=embedding_service.is_loaded,
+                error=embedding_service.load_error,
+            )
+        )
+
+    if settings.reranker_enabled:
+        reranker_service = get_reranker_service()
+        models.append(
+            ModelStatus(
+                name="jina-reranker-v3",
+                loaded=reranker_service.is_loaded,
+                error=reranker_service.load_error,
+            )
+        )
 
     # Determine overall status
-    all_loaded = all(m.loaded for m in models)
-    any_error = any(m.error for m in models)
-
-    if all_loaded and not any_error:
+    if not models:
+        status = "not_configured"
+    elif all(m.loaded for m in models) and not any(m.error for m in models):
         status = "healthy"
-    elif any_error:
+    elif any(m.error for m in models):
         status = "unhealthy"
     else:
         status = "standby"

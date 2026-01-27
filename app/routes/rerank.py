@@ -4,6 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
+from app.config import get_settings
 from app.schemas import RerankRequest, RerankResponse, RerankResult
 from app.services.reranker_service import get_reranker_service
 
@@ -18,6 +19,12 @@ async def rerank_documents(request: RerankRequest) -> RerankResponse:
 
     Follows Cohere/Jina rerank API convention.
     """
+
+    settings = get_settings()
+
+    if not settings.reranker_enabled:
+        raise HTTPException(status_code=404, detail="Reranker model is not enabled")
+
     service = get_reranker_service()
 
     if not request.query.strip():

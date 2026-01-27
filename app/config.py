@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     host: str = "localhost"
     port: int = 11435
 
+    # Model selection: "all", "embedding", or "reranker"
+    enabled_models: str = "all"
+
     # Resource management
     lazy_load: bool = True
     model_idle_timeout_seconds: int = 900
@@ -32,6 +35,18 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "extra": "ignore",
     }
+
+    @property
+    def embedding_enabled(self) -> bool:
+        """Check if embedding model is enabled."""
+
+        return self.enabled_models in ("all", "embedding")
+
+    @property
+    def reranker_enabled(self) -> bool:
+        """Check if reranker model is enabled."""
+
+        return self.enabled_models in ("all", "reranker")
 
 
 def apply_cli_overrides(args: dict) -> None:

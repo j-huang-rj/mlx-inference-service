@@ -13,10 +13,12 @@ async def list_models() -> ModelList:
     """List available models."""
 
     settings = get_settings()
+    models = []
 
-    return ModelList(
-        data=[
-            ModelCard(id=settings.embedding_model),
-            ModelCard(id=settings.reranker_model),
-        ]
-    )
+    if settings.embedding_enabled:
+        models.append(ModelCard(id=settings.embedding_model))
+
+    if settings.reranker_enabled:
+        models.append(ModelCard(id=settings.reranker_model))
+
+    return ModelList(data=models)

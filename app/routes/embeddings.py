@@ -25,8 +25,12 @@ async def create_embeddings(request: EmbeddingRequest) -> EmbeddingResponse:
     OpenAI-compatible endpoint.
     """
 
-    service = get_embedding_service()
     settings = get_settings()
+
+    if not settings.embedding_enabled:
+        raise HTTPException(status_code=404, detail="Embedding model is not enabled")
+
+    service = get_embedding_service()
 
     # Normalize input to list
     texts = [request.input] if isinstance(request.input, str) else request.input

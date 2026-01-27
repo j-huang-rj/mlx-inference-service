@@ -42,11 +42,13 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     info_text.append("🚀 Service Port        ", style="bold cyan")
     info_text.append(f"{settings.port}\n", style="bright_white")
 
-    info_text.append("🤖 Embedding Model     ", style="bold cyan")
-    info_text.append(f"{settings.embedding_model}\n", style="bright_white")
+    if settings.embedding_enabled:
+        info_text.append("🤖 Embedding Model     ", style="bold cyan")
+        info_text.append(f"{settings.embedding_model}\n", style="bright_white")
 
-    info_text.append("🎯 Reranker Model      ", style="bold cyan")
-    info_text.append(f"{settings.reranker_model}\n", style="bright_white")
+    if settings.reranker_enabled:
+        info_text.append("🎯 Reranker Model      ", style="bold cyan")
+        info_text.append(f"{settings.reranker_model}\n", style="bright_white")
 
     info_text.append("⚡ Loading Strategy    ", style="bold cyan")
     info_text.append("Lazy\n", style="bright_white")
@@ -68,8 +70,10 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     # Cleanup on shutdown
     model_manager.stop()
     logger.info("Unloading models...")
-    get_embedding_service().unload()
-    get_reranker_service().unload()
+    if settings.embedding_enabled:
+        get_embedding_service().unload()
+    if settings.reranker_enabled:
+        get_reranker_service().unload()
 
 
 def create_app() -> FastAPI:
@@ -173,6 +177,12 @@ def serve() -> None:
         type=str,
         choices=["dev", "prod"],
         help="Run mode (dev enables auto-reload)",
+    )
+    parser.add_argument(
+        "--enabled_models",
+        type=str,
+        choices=["all", "embedding", "reranker"],
+        help="Which models to enable",
     )
 
     # Resource management
