@@ -21,7 +21,13 @@ from app.utils.logging import setup_logging
 
 # Configure logging
 root_package = __name__.split(".")[0]
-setup_logging(level=logging.INFO, name=root_package, use_level_colors=False)
+setup_logging(
+    level=logging.INFO,
+    name=root_package,
+    use_level_colors=False,
+    show_extra=True,
+    extra_multiline=True,
+)
 logger = logging.getLogger(__name__)
 
 
