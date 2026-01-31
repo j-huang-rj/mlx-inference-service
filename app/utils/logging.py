@@ -52,15 +52,20 @@ class StyledRichHandler(logging.Handler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.console = Console(stderr=True)
+        self.console = Console(stderr=True, soft_wrap=True)
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
-            # Render with our formatter (badge + extras)
+            # Render with our formatter
             msg = self.format(record)
-            self.console.print(Text.from_markup(msg))
 
-            # If there's an exception, print a Rich traceback block
+            # Soft wrap
+            self.console.print(
+                Text.from_markup(msg),
+                soft_wrap=True,
+            )
+
+            # If there's a real exception, print a Rich traceback block
             exc_info = record.exc_info
             if exc_info and exc_info[0] is not None:
                 tb = Traceback.from_exception(
@@ -166,8 +171,7 @@ class StyleFormatter(logging.Formatter):
         secondary_style = "dim"
 
         parts: list[str] = []
-        for k in sorted(extras.keys()):
-            v = extras[k]
+        for k, v in extras.items():
             s = self._truncate(str(v))
             parts.append(
                 f"[{key_style}]{k}[/{key_style}]"
@@ -188,7 +192,7 @@ class StyleFormatter(logging.Formatter):
         if not extras:
             return ""
 
-        items = [(k, extras[k]) for k in sorted(extras.keys())]
+        items = list(extras.items())
         key_w = min(max(len(k) for k, _ in items), 24)
 
         rows: list[tuple[str, str]] = []
@@ -261,6 +265,42 @@ class StyleFormatter(logging.Formatter):
         return msg
 
 
+class AutoCtxFilter(logging.Filter):
+    """
+    Automatically prefix extra fields.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        prefix = _EXTRA_PREFIX
+        if not prefix:
+            return True
+
+        original = record.__dict__
+        new_d: dict[str, object] = {}
+
+        for key, value in original.items():
+            # Keep standard LogRecord fields as-is
+            if key in _STANDARD_RECORD_KEYS:
+                new_d[key] = value
+                continue
+
+            # Keep private/internal attrs as-is
+            if key.startswith("_"):
+                new_d[key] = value
+                continue
+
+            # Rewrite only non-prefixed extras, preserving order
+            if key.startswith(prefix):
+                new_d[key] = value
+            else:
+                new_d[f"{prefix}{key}"] = value
+
+        # Replace in-place
+        original.clear()
+        original.update(new_d)
+        return True
+
+
 def setup_logging(
     level: int | str = logging.INFO,
     name: str | None = "app",
@@ -288,6 +328,7 @@ def setup_logging(
     _EXTRA_PREFIX = extra_prefix
 
     handler = StyledRichHandler()
+    handler.addFilter(AutoCtxFilter())
 
     allow = set(extra_allowlist) if extra_allowlist is not None else None
 
